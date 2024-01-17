@@ -61,23 +61,23 @@ module EasyCaptcha
         require 'rmagick' unless defined?(Magick)
 
         config = self
-        canvas = Magick::Image.new(EasyCaptcha.image_width, EasyCaptcha.image_height) do
-          self.background_color = config.image_background_color unless config.image_background_color.nil?
-          self.background_color = 'none' if config.background_image.present?
+        canvas = Magick::Image.new(EasyCaptcha.image_width, EasyCaptcha.image_height) do |image|
+          image.background_color = config.image_background_color unless config.image_background_color.nil?
+          image.background_color = 'none' if config.background_image.present?
         end
 
         # Render the text in the image
-        canvas.annotate(Magick::Draw.new, 0, 0, 0, 0, code) {
-          self.gravity     = Magick::CenterGravity
-          self.font        = config.font
-          self.font_weight = Magick::LighterWeight
-          self.fill        = config.font_fill_color
+        canvas.annotate(Magick::Draw.new, 0, 0, 0, 0, code) do |draw|
+          draw.gravity     = Magick::CenterGravity
+          draw.font        = config.font
+          draw.font_weight = Magick::LighterWeight
+          draw.fill        = config.font_fill_color
           if config.font_stroke.to_i > 0
-            self.stroke       = config.font_stroke_color
-            self.stroke_width = config.font_stroke
+            draw.stroke       = config.font_stroke_color
+            draw.stroke_width = config.font_stroke
           end
-          self.pointsize = config.font_size
-        }
+          draw.pointsize = config.font_size
+        end
 
         # Blur
         canvas = canvas.blur_image(config.blur_radius, config.blur_sigma) if config.blur?
@@ -102,9 +102,9 @@ module EasyCaptcha
           background = Magick::Image.read(config.background_image).first
           background.composite!(canvas, Magick::CenterGravity, Magick::OverCompositeOp)
 
-          image = background.to_blob { self.format = 'PNG' }
+          image = background.to_blob { |blob| blob.format = 'PNG' }
         else
-          image = canvas.to_blob { self.format = 'PNG' }
+          image = canvas.to_blob { |blob| blob.format = 'PNG' }
         end
 
         # ruby-1.9
